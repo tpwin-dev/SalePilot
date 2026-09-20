@@ -35,11 +35,11 @@
 }
 .product-list__head,
 .product-list__row {
-  min-width: 860px;
+  min-width: 1000px;
   display: grid;
   grid-template-columns:
     minmax(190px, 1.6fr) minmax(120px, 1fr) minmax(150px, 1fr)
-    110px 110px 110px;
+    100px 100px 100px 140px;
   gap: 16px;
   align-items: center;
   padding: 14px 18px;
@@ -58,6 +58,17 @@
 .product-list__row strong {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+.product-actions {
+  display: flex;
+  gap: 12px;
+}
+.product-actions .text-button {
+  padding: 0;
+  font-size: 0.72rem;
+}
+.product-actions .delete-button {
+  color: var(--color-danger);
 }
 .stock-dialog-backdrop {
   position: fixed;
@@ -78,6 +89,9 @@
   border: 1px solid var(--color-border);
   border-radius: 14px;
   box-shadow: 0 24px 70px rgb(15 23 42 / 28%);
+}
+.stock-dialog--edit {
+  width: min(720px, 100%);
 }
 .stock-dialog__header {
   display: flex;

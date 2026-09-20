@@ -22,6 +22,31 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+html[lang='my'] body {
+  font-family:
+    'Noto Sans Myanmar', 'Myanmar Text', 'Myanmar Sangam MN', sans-serif;
+  line-height: 1.75;
+}
+
+html[lang='my'] button,
+html[lang='my'] input,
+html[lang='my'] select,
+html[lang='my'] textarea {
+  font-family: inherit;
+  line-height: 1.75;
+}
+
+html[lang='my'] label > span,
+html[lang='my'] .drawer-link,
+html[lang='my'] .drawer-label {
+  line-height: 1.85;
+}
+
+html[lang='my'] input,
+html[lang='my'] select {
+  min-height: 46px;
+}
+
 :root {
   /* Main brand accent */
   --color-primary: #4f46e5;

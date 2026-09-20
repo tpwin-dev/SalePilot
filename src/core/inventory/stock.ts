@@ -30,8 +30,21 @@ export function createStockReceipt(
     id,
     productId: input.product.id,
     productName: input.product.name,
+    productSku: input.product.sku,
+    ...(input.product.variantName
+      ? { variantName: input.product.variantName }
+      : {}),
+    ...(input.product.variantOptions
+      ? { variantOptions: input.product.variantOptions }
+      : {}),
     baseUnitId: input.product.baseUnitId,
-    locationId: input.locationId,
+    ...(input.product.categoryId
+      ? { categoryId: input.product.categoryId }
+      : {}),
+    ...(input.product.categoryName
+      ? { categoryName: input.product.categoryName }
+      : {}),
+    ...(input.locationId ? { locationId: input.locationId } : {}),
     type: 'purchase',
     baseQuantity,
     enteredQuantity: normalizeDecimal(input.enteredQuantity),
@@ -39,6 +52,9 @@ export function createStockReceipt(
     conversionToBase: normalizeDecimal(productUnit.baseQuantity),
     occurredAt: input.occurredAt,
     ...(input.unitCost ? { unitCost: normalizeDecimal(input.unitCost) } : {}),
+    ...(input.product.sellingPrice
+      ? { sellingPrice: normalizeDecimal(input.product.sellingPrice) }
+      : {}),
     ...(input.reference ? { reference: input.reference.trim() } : {}),
     ...(input.note ? { note: input.note.trim() } : {}),
   }

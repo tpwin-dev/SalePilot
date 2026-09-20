@@ -27,6 +27,7 @@ describe('inventory quantity conversion', () => {
       id: 'product-1',
       name: 'Test product',
       sku: 'TEST-1',
+      sellingPrice: '12500.50',
       baseUnitId: 'piece',
       quantityPrecision: 0,
       productUnits: [
@@ -56,5 +57,6 @@ describe('inventory quantity conversion', () => {
     expect(movement.enteredQuantity).toBe('3')
     expect(movement.enteredUnitId).toBe('case')
     expect(movement.conversionToBase).toBe('24')
+    expect(movement.sellingPrice).toBe('12500.5')
   })
 })

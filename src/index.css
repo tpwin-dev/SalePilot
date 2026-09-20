@@ -3,6 +3,7 @@ html {
   min-height: 100%;
   background: #f1f4f7;
 }
+
 body {
   min-width: 320px;
   min-height: 100%;
@@ -19,4 +20,50 @@ body {
   line-height: 1.5;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+:root {
+  /* Main brand accent */
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-soft: #eef2ff;
+
+  /* Layout */
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-sidebar: #18181b;
+  --color-sidebar-hover: #27272a;
+
+  /* Text */
+  --color-text: #18181b;
+  --color-text-secondary: #52525b;
+  --color-text-muted: #a1a1aa;
+  --color-text-inverse: #fafafa;
+
+  /* Lines */
+  --color-border: #e4e4e7;
+
+  /* Semantic colors */
+  --color-success: #15803d;
+  --color-warning: #a16207;
+  --color-danger: #b91c1c;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-primary: #818cf8;
+  --color-primary-hover: #6366f1;
+  --color-primary-soft: #272750;
+  --color-background: #111113;
+  --color-surface: #18181b;
+  --color-sidebar: #0c0c0e;
+  --color-sidebar-hover: #27272a;
+  --color-text: #f4f4f5;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #71717a;
+  --color-text-inverse: #fafafa;
+  --color-border: #303036;
+  --color-success: #4ade80;
+  --color-warning: #facc15;
+  --color-danger: #f87171;
 }

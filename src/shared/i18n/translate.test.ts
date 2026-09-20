@@ -3,12 +3,10 @@ import { translate } from './translate'
 
 describe('translate', () => {
   it('returns an English message', () => {
-    expect(translate('en', 'app.tagline')).toBe('Universal point of sale')
+    expect(translate('en', 'stock.title')).toBe('Add stock')
   })
 
   it('returns a Myanmar message', () => {
-    expect(translate('my', 'app.tagline')).toBe(
-      'လုပ်ငန်းမျိုးစုံသုံး အရောင်းစနစ်',
-    )
+    expect(translate('my', 'stock.title')).toBe('ကုန်လက်ကျန်ထည့်ရန်')
   })
 })

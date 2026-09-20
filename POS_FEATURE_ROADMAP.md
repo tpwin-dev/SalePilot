@@ -4,11 +4,11 @@ Implement each step completely and verify its acceptance criteria before startin
 
 ## 1. Project foundation
 
-- [ ] Repository and workspace structure
-- [ ] Strict TypeScript, formatting, linting, tests, and CI
-- [ ] Database migrations and module-boundary enforcement
-- [ ] Secret scanning
-- [ ] English and Myanmar localization foundation
+- [x] Repository and workspace structure
+- [x] Strict TypeScript, formatting, linting, tests, and CI
+- [x] Database migrations and module-boundary enforcement
+- [x] Secret scanning
+- [x] English and Myanmar localization foundation
 
 **Acceptance criteria**
 

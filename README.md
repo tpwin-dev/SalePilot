@@ -1,75 +1,52 @@
-# React + TypeScript + Vite
+# SalePilot
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SalePilot is a local-first universal point-of-sale application. It is being built
+in small, verified milestones so the codebase remains understandable and the
+business rules remain reliable.
 
-Currently, two official plugins are available:
+## Technology
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React renders the user interface from components.
+- TypeScript checks data shapes and catches mistakes before runtime.
+- Vite runs the development server and creates production builds.
+- Vitest verifies business logic with automated tests.
+- ESLint and Prettier keep the source consistent.
 
-## React Compiler
+## Start developing
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Install Node.js 24, then run:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```sh
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Before considering work complete, run the complete quality gate:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```sh
+npm run check
 ```
+
+## Source structure
+
+```text
+src/
+  app/       Application composition and top-level UI
+  core/      Provider-neutral business and infrastructure contracts
+  features/  User-facing POS capabilities (added as they are built)
+  shared/    Reusable UI and utilities, including localization
+```
+
+Code in `core` must not depend on a browser database or cloud vendor. Concrete
+providers will implement the contracts defined there. Database changes are
+versioned migrations and must be tested before release.
+
+## Working agreements
+
+- Store money as integer minor units, not floating-point values.
+- Keep posted sales and inventory movements append-only.
+- Never commit passwords, API keys, `.env` files, or customer data.
+- Add English and Myanmar text through the localization message catalogue.
+- Complete and verify one roadmap milestone before starting the next.
+
+See [POS_FEATURE_ROADMAP.md](./POS_FEATURE_ROADMAP.md) for the product roadmap.

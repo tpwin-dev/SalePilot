@@ -19,4 +19,36 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    files: ['src/core/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/app/**', '**/features/**'],
+              message: 'Core code must not depend on app or feature code.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/shared/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/app/**', '**/core/**', '**/features/**'],
+              message: 'Shared code must not depend on higher-level modules.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ])

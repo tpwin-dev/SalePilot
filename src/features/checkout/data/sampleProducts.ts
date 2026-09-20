@@ -1,0 +1,68 @@
+import type { Product } from '../domain/cart'
+
+export const sampleProducts: readonly Product[] = [
+  {
+    id: 'myanmar-milk-tea',
+    name: 'Myanmar Milk Tea',
+    category: 'Drinks',
+    priceMinor: 2_500,
+    color: '#e9a23b',
+    shortCode: 'MT',
+  },
+  {
+    id: 'iced-coffee',
+    name: 'Iced Coffee',
+    category: 'Drinks',
+    priceMinor: 3_500,
+    color: '#8c5a3c',
+    shortCode: 'IC',
+  },
+  {
+    id: 'lime-soda',
+    name: 'Lime Soda',
+    category: 'Drinks',
+    priceMinor: 3_000,
+    color: '#4e9c75',
+    shortCode: 'LS',
+  },
+  {
+    id: 'chicken-rice',
+    name: 'Chicken Rice',
+    category: 'Meals',
+    priceMinor: 6_500,
+    color: '#d2684b',
+    shortCode: 'CR',
+  },
+  {
+    id: 'shan-noodles',
+    name: 'Shan Noodles',
+    category: 'Meals',
+    priceMinor: 5_500,
+    color: '#c64f65',
+    shortCode: 'SN',
+  },
+  {
+    id: 'fried-rice',
+    name: 'Fried Rice',
+    category: 'Meals',
+    priceMinor: 5_000,
+    color: '#c99337',
+    shortCode: 'FR',
+  },
+  {
+    id: 'spring-rolls',
+    name: 'Spring Rolls',
+    category: 'Snacks',
+    priceMinor: 3_000,
+    color: '#77934b',
+    shortCode: 'SR',
+  },
+  {
+    id: 'coconut-cake',
+    name: 'Coconut Cake',
+    category: 'Snacks',
+    priceMinor: 2_000,
+    color: '#9272ad',
+    shortCode: 'CC',
+  },
+]

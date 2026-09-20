@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import type { MessageKey } from '../../shared/i18n/messages'
+import { useAuth } from '../auth/authContext'
 import { usePreferences } from '../../shared/preferences/preferencesContext'
 import AddStock from '../inventory/AddStock'
 import './Dashboard.css'
@@ -105,6 +106,7 @@ const orders: readonly DashboardOrder[] = []
 
 export default function Dashboard() {
   const { locale, setLocale, theme, toggleTheme, t } = usePreferences()
+  const { user, logout } = useAuth()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [activeItem, setActiveItem] = useState<MessageKey>('nav.overview')
 
@@ -158,12 +160,23 @@ export default function Dashboard() {
             <span>{t('nav.settings')}</span>
           </button>
           <div className="profile">
-            <span className="profile-avatar">AM</span>
-            <span>
-              <strong>Aung Myo</strong>
-              <small>{t('user.role')}</small>
+            <span className="profile-avatar">
+              {user?.displayName.slice(0, 2).toUpperCase()}
             </span>
-            <span className="profile-more">•••</span>
+            <span>
+              <strong>{user?.displayName}</strong>
+              <small>
+                {t(`user.${user?.role ?? 'cashier'}` as MessageKey)}
+              </small>
+            </span>
+            <button
+              className="profile-more"
+              onClick={logout}
+              aria-label={t('auth.logout')}
+              title={t('auth.logout')}
+            >
+              ↪
+            </button>
           </div>
         </div>
       </aside>
@@ -190,7 +203,7 @@ export default function Dashboard() {
                 dateStyle: 'full',
               }).format(new Date())}
             </p>
-            <h1>{t('header.greeting')}</h1>
+            <h1>{t('header.greeting', { name: user?.displayName ?? '' })}</h1>
           </div>
           <div className="topbar-actions">
             <button

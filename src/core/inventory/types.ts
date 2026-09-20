@@ -33,7 +33,12 @@ export interface InventoryProduct {
   readonly id: string
   readonly name: string
   readonly sku: string
+  readonly sellingPrice?: string
   readonly baseUnitId: string
+  readonly categoryId?: string
+  readonly categoryName?: string
+  readonly variantName?: string
+  readonly variantOptions?: Readonly<Record<string, string>>
   readonly quantityPrecision: number
   readonly productUnits: readonly ProductUnit[]
 }
@@ -55,8 +60,13 @@ export interface StockMovement {
   readonly id: string
   readonly productId: string
   readonly productName: string
+  readonly productSku: string
+  readonly variantName?: string
+  readonly variantOptions?: Readonly<Record<string, string>>
   readonly baseUnitId: string
-  readonly locationId: string
+  readonly categoryId?: string
+  readonly categoryName?: string
+  readonly locationId?: string
   readonly type: StockMovementType
   /** The only quantity used when calculating stock balances. */
   readonly baseQuantity: string
@@ -65,6 +75,7 @@ export interface StockMovement {
   readonly enteredUnitId: string
   readonly conversionToBase: string
   readonly unitCost?: string
+  readonly sellingPrice?: string
   readonly reference?: string
   readonly note?: string
   readonly occurredAt: string
@@ -74,7 +85,7 @@ export interface AddStockInput {
   readonly product: InventoryProduct
   readonly productUnitId: string
   readonly enteredQuantity: string
-  readonly locationId: string
+  readonly locationId?: string
   readonly unitCost?: string
   readonly reference?: string
   readonly note?: string

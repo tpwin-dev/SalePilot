@@ -1,11 +1,14 @@
-import Dashboard from "../features/dashboard/Dashboard";
+import Dashboard from '../features/dashboard/Dashboard'
+import { PreferencesProvider } from '../shared/preferences/PreferencesProvider'
 
 function App() {
   return (
-    <main>
-      <Dashboard />
-    </main>
-  );
+    <PreferencesProvider>
+      <main>
+        <Dashboard />
+      </main>
+    </PreferencesProvider>
+  )
 }
 
-export default App;
+export default App

@@ -66,6 +66,55 @@ describe('inventory quantity conversion', () => {
     expect(movement.sellingPrice).toBe('12500.5')
   })
 
+  it('preserves receiving and operator audit metadata', () => {
+    const product: InventoryProduct = {
+      id: 'product-1',
+      name: 'Medicine',
+      sku: 'MED-1',
+      baseUnitId: 'piece',
+      quantityPrecision: 0,
+      productUnits: [
+        {
+          id: 'piece',
+          productId: 'product-1',
+          unitId: 'piece',
+          baseQuantity: '1',
+          canPurchase: true,
+          canSell: true,
+        },
+      ],
+    }
+    const movement = createStockReceipt(
+      {
+        product,
+        productUnitId: 'piece',
+        enteredQuantity: '5',
+        unitCost: '10',
+        supplierId: 'supplier-1',
+        supplierName: 'Main supplier',
+        locationId: 'location-1',
+        locationName: 'Main store',
+        reference: 'PO-100',
+        batchNumber: 'B-42',
+        expiryDate: '2027-12-31',
+        actorId: 'user-1',
+        actorName: 'Owner',
+        commandId: 'command-1',
+        occurredAt: '2026-09-21T00:00:00.000Z',
+      },
+      'movement-1',
+    )
+    expect(movement).toMatchObject({
+      supplierName: 'Main supplier',
+      locationName: 'Main store',
+      reference: 'PO-100',
+      batchNumber: 'B-42',
+      expiryDate: '2027-12-31',
+      actorName: 'Owner',
+      commandId: 'command-1',
+    })
+  })
+
   it('projects stock from immutable receipts and reversing corrections', () => {
     const product: InventoryProduct = {
       id: 'product-1',

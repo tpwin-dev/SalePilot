@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Fragment, useEffect, useRef, useState, type FormEvent } from 'react'
 import { categoryRepository } from '../../core/inventory/categoryRepository'
 import {
   addDecimals,
@@ -18,8 +18,13 @@ import {
   calculateStockOnHand,
   calculateWeightedAverageCost,
   createStockReceipt,
+  signedMovementQuantity,
 } from '../../core/inventory/stock'
 import { stockMovementRepository } from '../../core/inventory/stockRepository'
+import {
+  locationRepository,
+  supplierRepository,
+} from '../../core/inventory/stockParties'
 import type {
   InventoryProduct,
   ProductUnit,
@@ -28,12 +33,15 @@ import type {
 import { getUnitSymbol, units } from '../../core/inventory/units'
 import type { MessageKey } from '../../shared/i18n/messages'
 import { usePreferences } from '../../shared/preferences/preferencesContext'
+import { useAuth } from '../auth/authContext'
 import ConfirmDialog from '../../shared/ui/ConfirmDialog'
 import './AddStock.css'
 
 const NEW_PRODUCT = '__new__'
 const NEW_CATEGORY = '__new_category__'
 const CUSTOM_UNIT = '__custom_unit__'
+const NEW_SUPPLIER = '__new_supplier__'
+const NEW_LOCATION = '__new_location__'
 const unitKey = (id: string) => `unit.${id}` as MessageKey
 
 function productFromMovement(movement: StockMovement): InventoryProduct {
@@ -78,8 +86,19 @@ function loadProducts(movements: readonly StockMovement[]) {
   return [...stored, ...migrated]
 }
 
+function hasReceiptInfo(movement: StockMovement) {
+  return Boolean(
+    movement.locationName ||
+    movement.supplierName ||
+    movement.reference ||
+    movement.batchNumber ||
+    movement.expiryDate,
+  )
+}
+
 export default function AddStock() {
   const { t } = usePreferences()
+  const { user } = useAuth()
   const [movements, setMovements] = useState<StockMovement[]>(() => [
     ...stockMovementRepository.list(),
   ])
@@ -88,6 +107,12 @@ export default function AddStock() {
   )
   const [categories, setCategories] = useState(() => [
     ...categoryRepository.list(),
+  ])
+  const [suppliers, setSuppliers] = useState(() => [
+    ...supplierRepository.list(),
+  ])
+  const [locations, setLocations] = useState(() => [
+    ...locationRepository.list(),
   ])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState(NEW_PRODUCT)
@@ -104,6 +129,18 @@ export default function AddStock() {
   const [unitCost, setUnitCost] = useState('')
   const [sellingPrice, setSellingPrice] = useState('')
   const [note, setNote] = useState('')
+  const [supplierId, setSupplierId] = useState('')
+  const [newSupplierName, setNewSupplierName] = useState('')
+  const [locationId, setLocationId] = useState('')
+  const [newLocationName, setNewLocationName] = useState('')
+  const [reference, setReference] = useState('')
+  const [batchNumber, setBatchNumber] = useState('')
+  const [expiryDate, setExpiryDate] = useState('')
+  const [historySelection, setHistorySelection] = useState<{
+    title: string
+    productIds: readonly string[]
+  } | null>(null)
+  const [showReceiptDetails, setShowReceiptDetails] = useState(false)
   const [hasVariants, setHasVariants] = useState(false)
   const [optionGroups, setOptionGroups] = useState([
     {
@@ -131,6 +168,7 @@ export default function AddStock() {
     action: 'archive' | 'delete'
   } | null>(null)
   const firstInputRef = useRef<HTMLSelectElement>(null)
+  const submittingRef = useRef(false)
 
   const archivedCount = products.filter(({ archivedAt }) => archivedAt).length
   const visibleProducts = products.filter(({ archivedAt }) =>
@@ -187,6 +225,14 @@ export default function AddStock() {
     setUnitCost('')
     setSellingPrice('')
     setNote('')
+    setSupplierId('')
+    setNewSupplierName('')
+    setLocationId('')
+    setNewLocationName('')
+    setReference('')
+    setBatchNumber('')
+    setExpiryDate('')
+    setShowReceiptDetails(false)
     setHasVariants(false)
     setOptionGroups([
       { id: crypto.randomUUID(), name: '', values: [], nextValue: '' },
@@ -229,10 +275,45 @@ export default function AddStock() {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (submittingRef.current) return
+    submittingRef.current = true
     try {
       const occurredAt = new Date().toISOString()
+      const commandId = crypto.randomUUID()
       let createdProducts: InventoryProduct[] = []
       let receipts: StockMovement[] = []
+      if (
+        !locationId ||
+        (locationId === NEW_LOCATION && !newLocationName.trim())
+      )
+        throw new Error('INVALID')
+      if (supplierId === NEW_SUPPLIER && !newSupplierName.trim())
+        throw new Error('INVALID')
+      const supplier =
+        supplierId === NEW_SUPPLIER
+          ? supplierRepository.create(newSupplierName)
+          : suppliers.find(({ id }) => id === supplierId)
+      const location =
+        locationId === NEW_LOCATION
+          ? locationRepository.create(newLocationName)
+          : locations.find(({ id }) => id === locationId)
+      if (!location) throw new Error('INVALID')
+      if (supplier && !suppliers.some(({ id }) => id === supplier.id))
+        setSuppliers((current) => [...current, supplier])
+      if (!locations.some(({ id }) => id === location.id))
+        setLocations((current) => [...current, location])
+      const receiptAudit = {
+        locationId: location.id,
+        locationName: location.name,
+        ...(supplier
+          ? { supplierId: supplier.id, supplierName: supplier.name }
+          : {}),
+        ...(reference.trim() ? { reference } : {}),
+        ...(batchNumber.trim() ? { batchNumber } : {}),
+        ...(expiryDate ? { expiryDate } : {}),
+        ...(user ? { actorId: user.id, actorName: user.displayName } : {}),
+        commandId,
+      }
       if (selectedProduct) {
         if (
           compareDecimal(quantity, '0') <= 0 ||
@@ -249,6 +330,7 @@ export default function AddStock() {
             unitCost,
             note,
             occurredAt,
+            ...receiptAudit,
           }),
         ]
       } else {
@@ -357,6 +439,7 @@ export default function AddStock() {
             unitCost: entries[index]?.unitCost ?? '',
             note,
             occurredAt,
+            ...receiptAudit,
           })
         })
         if (categoryId === NEW_CATEGORY) {
@@ -394,8 +477,12 @@ export default function AddStock() {
       setMessage(
         error instanceof Error && error.message === 'SKU_TAKEN'
           ? t('stock.skuTaken')
-          : t('stock.invalid'),
+          : error instanceof Error && error.message === 'STORAGE_WRITE_FAILED'
+            ? t('stock.storageFailed')
+            : t('stock.invalid'),
       )
+    } finally {
+      submittingRef.current = false
     }
   }
 
@@ -448,7 +535,7 @@ export default function AddStock() {
         ),
       }
       const adjustment: StockMovement | undefined =
-        quantityDifference === '0'
+        quantityDifference === '0' && !priceChanged
           ? undefined
           : {
               id: crypto.randomUUID(),
@@ -471,7 +558,17 @@ export default function AddStock() {
               enteredQuantity: quantityDifference,
               enteredUnitId: updated.baseUnitId,
               conversionToBase: '1',
+              ...(priceChanged
+                ? {
+                    previousSellingPrice: originalProduct?.sellingPrice ?? '0',
+                    sellingPrice: updated.sellingPrice,
+                  }
+                : {}),
               occurredAt: new Date().toISOString(),
+              ...(user
+                ? { actorId: user.id, actorName: user.displayName }
+                : {}),
+              commandId: crypto.randomUUID(),
               correctionReason: editRemark.trim(),
               note: editRemark.trim(),
             }
@@ -519,6 +616,24 @@ export default function AddStock() {
     setMessage(t('inventory.deleted'))
   }
 
+  function historyEntries(productIds: readonly string[]) {
+    const balances = new Map<string, string>()
+    return movements
+      .filter(({ productId }) => productIds.includes(productId))
+      .toSorted((left, right) =>
+        left.occurredAt.localeCompare(right.occurredAt),
+      )
+      .map((movement) => {
+        const balance = addDecimals(
+          balances.get(movement.productId) ?? '0',
+          signedMovementQuantity(movement),
+        )
+        balances.set(movement.productId, balance)
+        return { movement, balance }
+      })
+      .toReversed()
+  }
+
   return (
     <section className="stock-page">
       <div className="stock-title">
@@ -556,6 +671,7 @@ export default function AddStock() {
           {message}
         </div>
       )}
+
       {!productGroups.length ? (
         <div className="panel inventory-empty">{t('inventory.empty')}</div>
       ) : (
@@ -585,13 +701,27 @@ export default function AddStock() {
                             {first.categoryName ?? t('category.none')}
                           </span>
                         </div>
-                        {group.length > 1 && (
-                          <small>
-                            {t('variant.count', {
-                              count: group.length.toString(),
-                            })}
-                          </small>
-                        )}
+                        <div className="product-table-group__actions">
+                          {group.length > 1 && (
+                            <small>
+                              {t('variant.count', {
+                                count: group.length.toString(),
+                              })}
+                            </small>
+                          )}
+                          <button
+                            type="button"
+                            className="text-button"
+                            onClick={() =>
+                              setHistorySelection({
+                                title: first.name,
+                                productIds: group.map(({ id }) => id),
+                              })
+                            }
+                          >
+                            {t('stock.allHistory')}
+                          </button>
+                        </div>
                       </div>
                     </th>
                   </tr>
@@ -622,6 +752,20 @@ export default function AddStock() {
                         </td>
                         <td>
                           <div className="product-actions">
+                            <button
+                              type="button"
+                              className="product-action-button"
+                              onClick={() =>
+                                setHistorySelection({
+                                  title: product.variantName
+                                    ? `${product.name} · ${product.variantName}`
+                                    : product.name,
+                                  productIds: [product.id],
+                                })
+                              }
+                            >
+                              {t('stock.historyAction')}
+                            </button>
                             <button
                               type="button"
                               className="product-action-button"
@@ -1090,6 +1234,104 @@ export default function AddStock() {
                   })}
                 </div>
               )}
+              <label className="field">
+                <span>
+                  {t('stock.supplier')} <i>{t('stock.optional')}</i>{' '}
+                  <small>{t('stock.supplierHelp')}</small>
+                </span>
+                <select
+                  value={supplierId}
+                  onChange={(event) => setSupplierId(event.target.value)}
+                >
+                  <option value="">{t('stock.noSupplier')}</option>
+                  {suppliers.map((supplier) => (
+                    <option key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </option>
+                  ))}
+                  <option value={NEW_SUPPLIER}>{t('stock.newSupplier')}</option>
+                </select>
+              </label>
+              {supplierId === NEW_SUPPLIER && (
+                <label className="field">
+                  <span>{t('stock.supplierName')}</span>
+                  <input
+                    required
+                    value={newSupplierName}
+                    onChange={(event) => setNewSupplierName(event.target.value)}
+                  />
+                </label>
+              )}
+              <label className="field">
+                <span>
+                  {t('stock.location')} <small>{t('stock.locationHelp')}</small>
+                </span>
+                <select
+                  required
+                  value={locationId}
+                  onChange={(event) => setLocationId(event.target.value)}
+                >
+                  <option value="">{t('stock.selectLocation')}</option>
+                  {locations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+                  <option value={NEW_LOCATION}>{t('stock.newLocation')}</option>
+                </select>
+              </label>
+              {locationId === NEW_LOCATION && (
+                <label className="field">
+                  <span>{t('stock.locationName')}</span>
+                  <input
+                    required
+                    value={newLocationName}
+                    onChange={(event) => setNewLocationName(event.target.value)}
+                  />
+                </label>
+              )}
+              <button
+                type="button"
+                className="text-button field--wide receipt-details-toggle"
+                onClick={() => setShowReceiptDetails((value) => !value)}
+              >
+                {showReceiptDetails
+                  ? t('stock.hideReceiptDetails')
+                  : t('stock.moreReceiptDetails')}
+              </button>
+              {showReceiptDetails && (
+                <>
+                  <label className="field">
+                    <span>
+                      {t('stock.reference')}{' '}
+                      <small>{t('stock.referenceHelp')}</small>
+                    </span>
+                    <input
+                      value={reference}
+                      onChange={(event) => setReference(event.target.value)}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>
+                      {t('stock.batch')} <small>{t('stock.batchHelp')}</small>
+                    </span>
+                    <input
+                      value={batchNumber}
+                      onChange={(event) => setBatchNumber(event.target.value)}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>
+                      {t('stock.expiry')} <small>{t('stock.expiryHelp')}</small>
+                    </span>
+                    <input
+                      type="date"
+                      value={expiryDate}
+                      onChange={(event) => setExpiryDate(event.target.value)}
+                    />
+                  </label>
+                </>
+              )}
               <label className="field field--wide">
                 <span>
                   {t('stock.note')} <i>{t('stock.optional')}</i>
@@ -1201,6 +1443,131 @@ export default function AddStock() {
                 </button>
               </div>
             </form>
+          </section>
+        </div>
+      )}
+
+      {historySelection && (
+        <div
+          className="stock-dialog-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setHistorySelection(null)
+          }}
+        >
+          <section
+            className="stock-dialog stock-history-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="product-history-title"
+          >
+            <div className="stock-dialog__header">
+              <div>
+                <h2 id="product-history-title">{historySelection.title}</h2>
+                <span>{t('stock.history')}</span>
+              </div>
+              <button
+                type="button"
+                className="dialog-close"
+                aria-label={t('stock.close')}
+                onClick={() => setHistorySelection(null)}
+              >
+                ×
+              </button>
+            </div>
+            {historyEntries(historySelection.productIds).length === 0 ? (
+              <p className="history-empty">{t('stock.historyEmpty')}</p>
+            ) : (
+              <div className="stock-history__scroll">
+                <table className="product-history-table">
+                  <thead>
+                    <tr>
+                      <th>{t('stock.date')}</th>
+                      <th>{t('variant.name')}</th>
+                      <th>{t('stock.movement')}</th>
+                      <th>{t('stock.change')}</th>
+                      <th>{t('stock.balance')}</th>
+                      <th>{t('stock.priceChange')}</th>
+                      <th>{t('stock.remark')}</th>
+                      <th>{t('stock.operator')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historyEntries(historySelection.productIds).map(
+                      ({ movement, balance }) => (
+                        <Fragment key={movement.id}>
+                          <tr>
+                            <td>
+                              {new Date(movement.occurredAt).toLocaleString()}
+                            </td>
+                            <td>
+                              {movement.variantName ?? t('variant.standard')}
+                            </td>
+                            <td>
+                              {t(`movement.${movement.type}` as MessageKey)}
+                            </td>
+                            <td>
+                              {signedMovementQuantity(movement)}{' '}
+                              {getUnitSymbol(movement.baseUnitId)}
+                            </td>
+                            <td>
+                              {balance} {getUnitSymbol(movement.baseUnitId)}
+                            </td>
+                            <td>
+                              {movement.previousSellingPrice !== undefined &&
+                              movement.sellingPrice !== undefined
+                                ? `${movement.previousSellingPrice} → ${movement.sellingPrice}`
+                                : t('common.notAvailable')}
+                            </td>
+                            <td>
+                              {movement.correctionReason ??
+                                movement.note ??
+                                t('common.notAvailable')}
+                            </td>
+                            <td>
+                              {movement.actorName ?? t('common.notAvailable')}
+                            </td>
+                          </tr>
+                          {hasReceiptInfo(movement) && (
+                            <tr className="history-receipt-info">
+                              <td colSpan={8}>
+                                <strong>{t('stock.receiptInfo')}:</strong>
+                                {movement.supplierName && (
+                                  <span>
+                                    {t('stock.supplier')}:{' '}
+                                    {movement.supplierName}
+                                  </span>
+                                )}
+                                {movement.locationName && (
+                                  <span>
+                                    {t('stock.location')}:{' '}
+                                    {movement.locationName}
+                                  </span>
+                                )}
+                                {movement.reference && (
+                                  <span>
+                                    {t('stock.reference')}: {movement.reference}
+                                  </span>
+                                )}
+                                {movement.batchNumber && (
+                                  <span>
+                                    {t('stock.batch')}: {movement.batchNumber}
+                                  </span>
+                                )}
+                                {movement.expiryDate && (
+                                  <span>
+                                    {t('stock.expiry')}: {movement.expiryDate}
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      ),
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
         </div>
       )}

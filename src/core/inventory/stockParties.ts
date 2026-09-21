@@ -19,10 +19,15 @@ function repository(key: string) {
       const normalized = name.trim()
       if (!normalized) throw new Error('NAME_REQUIRED')
       const existing = read().find(
-        (item) => item.name.toLocaleLowerCase() === normalized.toLocaleLowerCase(),
+        (item) =>
+          item.name.toLocaleLowerCase() === normalized.toLocaleLowerCase(),
       )
       if (existing) return existing
-      const item = { id: crypto.randomUUID(), name: normalized, createdAt: new Date().toISOString() }
+      const item = {
+        id: crypto.randomUUID(),
+        name: normalized,
+        createdAt: new Date().toISOString(),
+      }
       localStorage.setItem(key, JSON.stringify([...read(), item]))
       return item
     },

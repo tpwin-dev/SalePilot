@@ -24,9 +24,7 @@ export class LocalStockMovementRepository implements StockMovementRepository {
       ),
     )
     if (
-      movements.some(
-        ({ commandId }) => commandId && commandIds.has(commandId),
-      )
+      movements.some(({ commandId }) => commandId && commandIds.has(commandId))
     )
       return
     writeInventory({

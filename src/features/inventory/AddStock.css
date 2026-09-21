@@ -29,6 +29,75 @@
 .inventory-message {
   margin-bottom: 16px;
 }
+.stock-history {
+  margin-top: 16px;
+  padding: 0;
+  overflow: hidden;
+}
+.stock-history__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+.stock-history__header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.stock-history__header span {
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+}
+.stock-history > p {
+  margin: 0;
+  padding: 24px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+.stock-history__scroll {
+  overflow-x: auto;
+}
+.stock-history table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+}
+.stock-history th,
+.stock-history td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  white-space: nowrap;
+}
+.stock-history th {
+  color: var(--color-text-secondary);
+  background: var(--color-background);
+  font-size: 0.64rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+.stock-history td {
+  color: var(--color-text-secondary);
+}
+.stock-history td:nth-child(2),
+.stock-history td:nth-child(3),
+.stock-history td:nth-child(4) {
+  color: var(--color-text);
+  font-weight: 550;
+}
+.history-receipt-info td {
+  padding-top: 7px;
+  padding-bottom: 7px;
+  color: var(--color-text-secondary);
+  background: var(--color-background);
+  white-space: normal;
+}
+.history-receipt-info strong,
+.history-receipt-info span {
+  margin-right: 14px;
+}
 .inventory-empty {
   padding: 48px 24px;
   color: var(--color-text-muted);
@@ -47,7 +116,7 @@
   min-width: 1080px;
   border-collapse: collapse;
   table-layout: fixed;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
 }
 .inventory-table-wrap::-webkit-scrollbar {
   height: 10px;
@@ -61,11 +130,24 @@
   border-radius: 999px;
 }
 .inventory-table thead {
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   background: var(--color-background);
-  font-size: 0.62rem;
+  font-size: 0.66rem;
+  font-weight: 750;
   text-align: left;
   text-transform: uppercase;
+}
+.inventory-table thead th:last-child,
+.product-table-row td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: var(--color-surface);
+  box-shadow: -10px 0 14px -14px var(--color-text);
+}
+.inventory-table thead th:last-child {
+  z-index: 3;
+  background: var(--color-background);
 }
 .inventory-table th,
 .inventory-table td {
@@ -110,10 +192,22 @@
 .product-table-group__content > div {
   justify-content: flex-start;
 }
+.product-table-group__content > .product-table-group__actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
 .product-table-group span {
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-size: 0.68rem;
   font-weight: 400;
+}
+.product-table-group strong {
+  color: var(--color-text);
+  font-weight: 750;
+}
+.receipt-details-toggle {
+  justify-self: start;
+  padding: 4px 0;
 }
 .product-table-group small {
   padding: 4px 8px;
@@ -122,9 +216,56 @@
   border-radius: 999px;
   font-weight: 650;
 }
+.stock-history-dialog {
+  width: min(1180px, 100%);
+}
+.stock-dialog__header > div > span {
+  color: var(--color-text-secondary);
+  font-size: 0.72rem;
+}
+.history-empty {
+  margin: 0;
+  padding: 32px 20px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+.product-history-table {
+  width: 100%;
+  min-width: 1060px;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+}
+.product-history-table th,
+.product-history-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  text-align: left;
+  white-space: nowrap;
+}
+.product-history-table th {
+  color: var(--color-text);
+  background: var(--color-background);
+  font-size: 0.68rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+.product-history-table td:nth-child(2),
+.product-history-table td:nth-child(4),
+.product-history-table td:nth-child(5) {
+  color: var(--color-text);
+  font-weight: 600;
+}
 .product-table-row td {
   border-top: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   overflow-wrap: anywhere;
+}
+.product-table-row td:first-child,
+.product-table-row td:nth-child(3),
+.product-table-row td:nth-child(4),
+.product-table-row td:nth-child(5) {
+  color: var(--color-text);
 }
 .product-table-row:hover td {
   background: color-mix(in srgb, var(--color-primary-soft) 24%, transparent);

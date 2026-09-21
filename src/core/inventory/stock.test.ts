@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { calculateBaseQuantity, createStockReceipt } from './stock'
+import {
+  calculateBaseQuantity,
+  calculateStockOnHand,
+  calculateWeightedAverageCost,
+  createStockCorrection,
+  createStockReceipt,
+} from './stock'
 import type { InventoryProduct } from './types'
 
 describe('inventory quantity conversion', () => {
@@ -58,5 +64,107 @@ describe('inventory quantity conversion', () => {
     expect(movement.enteredUnitId).toBe('case')
     expect(movement.conversionToBase).toBe('24')
     expect(movement.sellingPrice).toBe('12500.5')
+  })
+
+  it('projects stock from immutable receipts and reversing corrections', () => {
+    const product: InventoryProduct = {
+      id: 'product-1',
+      name: 'Rice',
+      sku: 'RICE',
+      baseUnitId: 'piece',
+      quantityPrecision: 0,
+      productUnits: [
+        {
+          id: 'case',
+          productId: 'product-1',
+          unitId: 'case',
+          baseQuantity: '24',
+          canPurchase: true,
+          canSell: false,
+        },
+      ],
+    }
+    const receipt = createStockReceipt(
+      {
+        product,
+        productUnitId: 'case',
+        enteredQuantity: '3',
+        unitCost: '120',
+        occurredAt: '2026-09-20T00:00:00.000Z',
+      },
+      'receipt-1',
+    )
+    const correction = createStockCorrection(
+      receipt,
+      'Duplicate receipt',
+      'correction-1',
+    )
+    expect(calculateStockOnHand(product.id, [receipt])).toBe('72')
+    expect(calculateStockOnHand(product.id, [receipt, correction])).toBe('0')
+    expect(correction.reversalOfId).toBe('receipt-1')
+    expect(correction.correctionReason).toBe('Duplicate receipt')
+  })
+
+  it('calculates exact weighted-average base-unit cost across purchase units', () => {
+    const product: InventoryProduct = {
+      id: 'product-1',
+      name: 'Water',
+      sku: 'WATER',
+      baseUnitId: 'piece',
+      quantityPrecision: 0,
+      productUnits: [
+        {
+          id: 'piece',
+          productId: 'product-1',
+          unitId: 'piece',
+          baseQuantity: '1',
+          canPurchase: true,
+          canSell: true,
+        },
+        {
+          id: 'case',
+          productId: 'product-1',
+          unitId: 'case',
+          baseQuantity: '12',
+          canPurchase: true,
+          canSell: false,
+        },
+      ],
+    }
+    const pieceReceipt = createStockReceipt(
+      {
+        product,
+        productUnitId: 'piece',
+        enteredQuantity: '12',
+        unitCost: '2',
+        occurredAt: '2026-09-20T00:00:00.000Z',
+      },
+      'r1',
+    )
+    const caseReceipt = createStockReceipt(
+      {
+        product,
+        productUnitId: 'case',
+        enteredQuantity: '2',
+        unitCost: '30',
+        occurredAt: '2026-09-21T00:00:00.000Z',
+      },
+      'r2',
+    )
+    expect(
+      calculateWeightedAverageCost(product.id, [pieceReceipt, caseReceipt]),
+    ).toBe('2.333333')
+    const correction = createStockCorrection(
+      caseReceipt,
+      'Wrong delivery',
+      'c1',
+    )
+    expect(
+      calculateWeightedAverageCost(product.id, [
+        pieceReceipt,
+        caseReceipt,
+        correction,
+      ]),
+    ).toBe('2')
   })
 })

@@ -34,6 +34,44 @@ export function multiplyDecimals(left: string, right: string): string {
   return formatDecimal(a.coefficient * b.coefficient, a.scale + b.scale)
 }
 
+export function addDecimals(left: string, right: string): string {
+  const a = parseDecimal(left)
+  const b = parseDecimal(right)
+  const scale = Math.max(a.scale, b.scale)
+  return formatDecimal(
+    a.coefficient * powerOfTen(scale - a.scale) +
+      b.coefficient * powerOfTen(scale - b.scale),
+    scale,
+  )
+}
+
+export function negateDecimal(value: string): string {
+  const parsed = parseDecimal(value)
+  return formatDecimal(-parsed.coefficient, parsed.scale)
+}
+
+/** Exact integer division rounded half-up to the requested decimal places. */
+export function divideDecimals(
+  numerator: string,
+  denominator: string,
+  decimalPlaces = 6,
+): string {
+  const a = parseDecimal(numerator)
+  const b = parseDecimal(denominator)
+  if (b.coefficient === 0n) throw new Error('Cannot divide by zero')
+  const scaledNumerator = a.coefficient * powerOfTen(b.scale + decimalPlaces)
+  const scaledDenominator = b.coefficient * powerOfTen(a.scale)
+  const quotient = scaledNumerator / scaledDenominator
+  const remainder = scaledNumerator % scaledDenominator
+  const rounded =
+    remainder !== 0n &&
+    (remainder < 0n ? -remainder : remainder) * 2n >=
+      (scaledDenominator < 0n ? -scaledDenominator : scaledDenominator)
+      ? quotient + (quotient >= 0n ? 1n : -1n)
+      : quotient
+  return formatDecimal(rounded, decimalPlaces)
+}
+
 export function compareDecimal(left: string, right: string): number {
   const a = parseDecimal(left)
   const b = parseDecimal(right)

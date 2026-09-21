@@ -78,6 +78,9 @@ export interface StockMovement {
   readonly categoryId?: string
   readonly categoryName?: string
   readonly locationId?: string
+  readonly locationName?: string
+  readonly supplierId?: string
+  readonly supplierName?: string
   readonly type: StockMovementType
   /** The only quantity used when calculating stock balances. */
   readonly baseQuantity: string
@@ -89,6 +92,11 @@ export interface StockMovement {
   readonly unitCost?: string
   readonly sellingPrice?: string
   readonly reference?: string
+  readonly batchNumber?: string
+  readonly expiryDate?: string
+  readonly actorId?: string
+  readonly actorName?: string
+  readonly commandId?: string
   readonly note?: string
   readonly occurredAt: string
   readonly reversalOfId?: string
@@ -100,8 +108,16 @@ export interface AddStockInput {
   readonly productUnitId: string
   readonly enteredQuantity: string
   readonly locationId?: string
+  readonly locationName?: string
+  readonly supplierId?: string
+  readonly supplierName?: string
   readonly unitCost?: string
   readonly reference?: string
+  readonly batchNumber?: string
+  readonly expiryDate?: string
+  readonly actorId?: string
+  readonly actorName?: string
+  readonly commandId?: string
   readonly note?: string
   readonly occurredAt: string
 }

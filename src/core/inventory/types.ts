@@ -91,6 +91,7 @@ export interface StockMovement {
   readonly conversionToBase: string
   readonly unitCost?: string
   readonly sellingPrice?: string
+  readonly previousSellingPrice?: string
   readonly reference?: string
   readonly batchNumber?: string
   readonly expiryDate?: string

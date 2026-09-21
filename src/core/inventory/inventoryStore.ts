@@ -42,7 +42,11 @@ export function readInventory(): InventorySnapshot {
 }
 
 export function writeInventory(snapshot: InventorySnapshot): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot))
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot))
+  } catch {
+    throw new Error('STORAGE_WRITE_FAILED')
+  }
 }
 
 export function commitInventoryAdd(
@@ -51,7 +55,9 @@ export function commitInventoryAdd(
 ): void {
   const current = readInventory()
   const commandIds = new Set(
-    current.movements.flatMap(({ commandId }) => (commandId ? [commandId] : [])),
+    current.movements.flatMap(({ commandId }) =>
+      commandId ? [commandId] : [],
+    ),
   )
   if (movements.some(({ commandId }) => commandId && commandIds.has(commandId)))
     return

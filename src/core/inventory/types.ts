@@ -22,6 +22,8 @@ export interface ProductUnit {
   readonly id: string
   readonly productId: string
   readonly unitId: string
+  /** User-entered label for a merchant-defined unit. */
+  readonly unitName?: string
   /** Exact quantity of the product's base unit contained in one selling unit. */
   readonly baseQuantity: string
   readonly barcode?: string
@@ -31,9 +33,17 @@ export interface ProductUnit {
 
 export interface InventoryProduct {
   readonly id: string
+  /** Groups separately stocked variants under one catalogue product. */
+  readonly familyId?: string
   readonly name: string
   readonly sku: string
   readonly sellingPrice?: string
+  readonly priceHistory?: readonly {
+    readonly previousPrice: string
+    readonly nextPrice: string
+    readonly remark: string
+    readonly occurredAt: string
+  }[]
   readonly baseUnitId: string
   readonly categoryId?: string
   readonly categoryName?: string
@@ -41,6 +51,7 @@ export interface InventoryProduct {
   readonly variantOptions?: Readonly<Record<string, string>>
   readonly quantityPrecision: number
   readonly productUnits: readonly ProductUnit[]
+  readonly archivedAt?: string
 }
 
 export type StockMovementType =
@@ -73,12 +84,15 @@ export interface StockMovement {
   /** Audit snapshot of what the operator entered. */
   readonly enteredQuantity: string
   readonly enteredUnitId: string
+  readonly enteredUnitName?: string
   readonly conversionToBase: string
   readonly unitCost?: string
   readonly sellingPrice?: string
   readonly reference?: string
   readonly note?: string
   readonly occurredAt: string
+  readonly reversalOfId?: string
+  readonly correctionReason?: string
 }
 
 export interface AddStockInput {

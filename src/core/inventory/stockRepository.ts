@@ -18,6 +18,17 @@ export class LocalStockMovementRepository implements StockMovementRepository {
 
   addMany(movements: readonly StockMovement[]): void {
     const current = readInventory()
+    const commandIds = new Set(
+      current.movements.flatMap(({ commandId }) =>
+        commandId ? [commandId] : [],
+      ),
+    )
+    if (
+      movements.some(
+        ({ commandId }) => commandId && commandIds.has(commandId),
+      )
+    )
+      return
     writeInventory({
       ...current,
       movements: [...movements, ...current.movements],
